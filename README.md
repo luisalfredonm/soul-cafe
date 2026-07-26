@@ -113,6 +113,9 @@ Si algún día querés invertirlo (español en la raíz), se cambia `DEFAULT_LAN
 ## Antes de salir al público
 
 - [ ] Reemplazar los datos de ejemplo por los reales (precios, horarios de verdad, WhatsApp)
+  - **Los precios se escriben SIN IVA.** El sitio le suma la tarifa de Ajustes (13% por
+    defecto) y muestra el precio final al cliente. Si querés que en el menú salga un número
+    redondo, calculá el neto hacia atrás: para mostrar ₡1.600, escribí ₡1.416.
 - [ ] Cambiar la contraseña del admin
 - [ ] Subir fotos reales del local y los productos
 - [ ] Confirmar los horarios definitivos (el copy asume apertura 6:30 y domingo abierto)

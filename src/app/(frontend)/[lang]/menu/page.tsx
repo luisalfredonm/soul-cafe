@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
 import type { Lang } from '@/i18n/dictionaries'
 import { LANGS, getDict } from '@/i18n/dictionaries'
-import { getMenu } from '@/lib/payload'
+import { getAjustes, getMenu } from '@/lib/payload'
+import { pedidosAbiertos } from '@/lib/pedidos'
 import { MenuClient, type MenuGroup } from '@/components/MenuClient'
 
-export const revalidate = 300 // el menú cambia más seguido: cada 5 min
+// El menú se regenera cada 5 min. Eso significa que apagar los pedidos puede
+// tardar hasta 5 minutos en quitar el botón de esta página. No es un problema:
+// el checkout sí es dinámico y crearPedido vuelve a comprobar el interruptor,
+// así que un pedido enviado con el botón viejo se rechaza igual.
+export const revalidate = 300
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params
@@ -26,7 +31,11 @@ export default async function MenuPage({ params }: { params: Promise<{ lang: str
   const l = (LANGS.includes(lang as Lang) ? lang : 'en') as Lang
   const t = getDict(l)
 
-  const menu = (await getMenu(l)) as unknown as MenuGroup[]
+  const [menu, ajustes] = await Promise.all([
+    getMenu(l) as unknown as Promise<MenuGroup[]>,
+    getAjustes(l),
+  ])
+  const abiertos = pedidosAbiertos(ajustes)
 
   return (
     <>
@@ -40,7 +49,7 @@ export default async function MenuPage({ params }: { params: Promise<{ lang: str
         </div>
       </header>
 
-      <MenuClient lang={l} groups={menu} />
+      <MenuClient lang={l} groups={menu} pedidosAbiertos={abiertos} />
     </>
   )
 }

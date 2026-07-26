@@ -125,6 +125,18 @@ export const Productos: CollectionConfig = {
       },
     },
     {
+      name: 'tarifaIva',
+      label: 'Tarifa de IVA propia (%)',
+      type: 'number',
+      min: 0,
+      max: 100,
+      admin: {
+        position: 'sidebar',
+        description:
+          'Dejar vacío para usar la tarifa general de Ajustes. Llenar solo si el CABYS de este producto tiene otra tarifa (por ejemplo, algo de canasta básica).',
+      },
+    },
+    {
       // Preparado para la fase de delivery. Sin uso en fase 1.
       name: 'disponibleDelivery',
       label: 'Se puede enviar a domicilio',

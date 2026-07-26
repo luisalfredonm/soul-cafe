@@ -9,6 +9,7 @@ import { Categorias } from './collections/Categorias'
 import { Paginas } from './collections/Paginas'
 import { Media } from './collections/Media'
 import { Usuarios } from './collections/Usuarios'
+import { Pedidos } from './collections/Pedidos'
 import { Ajustes } from './globals/Ajustes'
 
 const filename = fileURLToPath(import.meta.url)
@@ -38,7 +39,7 @@ export default buildConfig({
     fallbackLanguage: 'es',
   },
 
-  collections: [Productos, Categorias, Paginas, Media, Usuarios],
+  collections: [Productos, Categorias, Paginas, Media, Usuarios, Pedidos],
   globals: [Ajustes],
 
   editor: lexicalEditor(),

@@ -7,12 +7,18 @@ export async function getPayloadClient() {
   return getPayload({ config })
 }
 
+// El precio se guarda SIN IVA (es el neto que va a la factura), pero al cliente
+// se le muestra el precio final. Redondea al colón: aquí no se usan céntimos.
+export function conIva(neto: number, tarifa: number) {
+  return Math.round(neto * (1 + tarifa / 100))
+}
+
 // Trae el menú agrupado por categoría, en el idioma pedido,
 // omitiendo lo que está agotado. Ordena por el campo "orden".
 export async function getMenu(lang: Lang) {
   const payload = await getPayloadClient()
 
-  const [categorias, productos] = await Promise.all([
+  const [categorias, productos, ajustes] = await Promise.all([
     payload.find({
       collection: 'categorias',
       locale: lang,
@@ -27,7 +33,10 @@ export async function getMenu(lang: Lang) {
       limit: 500,
       depth: 1,
     }),
+    payload.findGlobal({ slug: 'ajustes' }),
   ])
+
+  const tarifaGeneral = Number(ajustes?.tarifaIvaDefecto ?? 13)
 
   // Agrupa productos bajo su categoría
   return categorias.docs.map((cat) => ({
@@ -35,11 +44,22 @@ export async function getMenu(lang: Lang) {
     slug: cat.slug as string,
     nombre: cat.nombre as string,
     nota: (cat.nota as string) || '',
-    productos: productos.docs.filter((p) => {
-      const c = p.categoria
-      const catId = typeof c === 'object' && c !== null ? c.id : c
-      return catId === cat.id
-    }),
+    productos: productos.docs
+      .filter((p) => {
+        const c = p.categoria
+        const catId = typeof c === 'object' && c !== null ? c.id : c
+        return catId === cat.id
+      })
+      .map((p) => {
+        // Un producto puede llevar su propia tarifa si su CABYS lo pide.
+        const tarifa = typeof p.tarifaIva === 'number' ? p.tarifaIva : tarifaGeneral
+        return {
+          ...p,
+          tarifaIva: tarifa,
+          // precio queda neto para la factura; precioFinal es el que se muestra.
+          precioFinal: conIva(Number(p.precio) || 0, tarifa),
+        }
+      }),
   }))
 }
 

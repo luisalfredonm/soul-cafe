@@ -1,14 +1,21 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import type { Lang } from '@/i18n/dictionaries'
 import { getDict } from '@/i18n/dictionaries'
+import { useCarrito } from './Carrito'
 
 export type MenuItem = {
   id: string | number
   nombre: string
   descripcion?: string
+  /** Precio neto, sin IVA. Es el que va a la factura; no se muestra. */
   precio: number
+  /** Precio que ve el cliente, con el IVA ya sumado. */
+  precioFinal: number
+  /** Tarifa aplicada, para poder mostrar el desglose en el checkout. */
+  tarifaIva?: number
   etiquetas?: string[]
 }
 export type MenuGroup = {
@@ -28,10 +35,23 @@ function money(n: number) {
   return '₡' + n.toLocaleString('es-CR')
 }
 
-export function MenuClient({ lang, groups }: { lang: Lang; groups: MenuGroup[] }) {
+export function MenuClient({
+  lang,
+  groups,
+  pedidosAbiertos = false,
+}: {
+  lang: Lang
+  groups: MenuGroup[]
+  pedidosAbiertos?: boolean
+}) {
   const t = getDict(lang)
   const [query, setQuery] = useState('')
   const [diets, setDiets] = useState<Diet[]>([])
+  const carrito = useCarrito()
+  // La carta arranca como carta. Solo se vuelve comprable si lo piden.
+  const [pidiendo, setPidiendo] = useState(false)
+  const modoPedido = pedidosAbiertos && pidiendo
+  const p = (path: string) => (lang === 'es' ? `/es${path}` : path) || '/'
 
   const total = useMemo(
     () => groups.reduce((n, g) => n + g.productos.length, 0),
@@ -86,6 +106,20 @@ export function MenuClient({ lang, groups }: { lang: Lang; groups: MenuGroup[] }
       {/* Barra pegajosa: búsqueda + filtros + chips */}
       <div style={{ position: 'sticky', top: 58, zIndex: 60, background: 'var(--wine-deep)', boxShadow: '0 6px 20px rgba(44,10,14,.18)' }} className="on-wine">
         <div className="wrap" style={{ paddingTop: '.75rem' }}>
+          {pedidosAbiertos && (
+            <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '.75rem' }}>
+              <button
+                onClick={() => setPidiendo((v) => !v)}
+                aria-pressed={modoPedido}
+                className={modoPedido ? 'btn btn-outline' : 'btn btn-light'}
+                style={{ border: 0, fontFamily: 'var(--sans)' }}
+              >
+                {modoPedido ? t.pedido.salir : t.pedido.empezar}
+                {!modoPedido && <span className="arw" aria-hidden>→</span>}
+              </button>
+            </div>
+          )}
+
           <div style={{ position: 'relative' }}>
             <label htmlFor="q" style={srOnly}>{t.menu.searchLabel}</label>
             <span aria-hidden style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)', color: 'var(--on-wine-soft)' }}>⌕</span>
@@ -194,7 +228,7 @@ export function MenuClient({ lang, groups }: { lang: Lang; groups: MenuGroup[] }
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '.75rem' }}>
                   <h3 style={{ fontSize: 17, flex: '0 1 auto' }}>{highlight(it.nombre)}</h3>
                   <span aria-hidden style={{ flex: '1 1 auto', borderBottom: '1px dotted var(--hair)', transform: 'translateY(-4px)', minWidth: 16 }} />
-                  <span style={{ fontFamily: 'var(--display)', fontSize: 16, color: 'var(--wine)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{money(it.precio)}</span>
+                  <span style={{ fontFamily: 'var(--display)', fontSize: 16, color: 'var(--wine)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{money(it.precioFinal)}</span>
                 </div>
                 {it.descripcion && <p style={{ fontSize: 14.5, color: 'var(--muted)', marginTop: 4, lineHeight: 1.55, maxWidth: '56ch' }}>{highlight(it.descripcion)}</p>}
                 {it.etiquetas && it.etiquetas.length > 0 && (
@@ -206,6 +240,8 @@ export function MenuClient({ lang, groups }: { lang: Lang; groups: MenuGroup[] }
                     ))}
                   </div>
                 )}
+
+                {modoPedido && <Contador item={it} lang={lang} />}
               </article>
             ))}
           </section>
@@ -219,9 +255,86 @@ export function MenuClient({ lang, groups }: { lang: Lang; groups: MenuGroup[] }
             </button>
           </div>
         )}
+
+        {/* Deja aire para que la barra fija no tape el último producto */}
+        {modoPedido && carrito.unidades > 0 && <div style={{ height: 96 }} aria-hidden />}
       </div>
+
+      {modoPedido && carrito.unidades > 0 && (
+        <div
+          className="on-wine"
+          style={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 90,
+            background: 'var(--wine)',
+            borderTop: '1px solid var(--hair-light)',
+            boxShadow: '0 -8px 28px rgba(44,10,14,.28)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
+          <div
+            className="wrap"
+            style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingTop: '.85rem', paddingBottom: '.85rem' }}
+          >
+            <span style={{ fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--on-wine-soft)' }}>
+              {t.pedido.unidades(carrito.unidades)}
+            </span>
+            <Link className="btn btn-light" href={p('/checkout')} style={{ marginLeft: 'auto' }}>
+              {t.pedido.verPedido} <span className="arw" aria-hidden>→</span>
+            </Link>
+          </div>
+        </div>
+      )}
     </>
   )
+}
+
+// Sumar y restar un producto. Vive aparte para no re-renderizar todo el menú.
+function Contador({ item, lang }: { item: MenuItem; lang: Lang }) {
+  const t = getDict(lang)
+  const { cantidadDe, agregar, quitar } = useCarrito()
+  const n = cantidadDe(Number(item.id))
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginTop: '.75rem' }}>
+      {n > 0 && (
+        <>
+          <button onClick={() => quitar(Number(item.id))} aria-label={t.pedido.quitar(item.nombre)} style={botonRedondo}>
+            −
+          </button>
+          <span
+            aria-live="polite"
+            style={{ minWidth: 24, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}
+          >
+            {n}
+          </span>
+        </>
+      )}
+      <button onClick={() => agregar(Number(item.id))} aria-label={t.pedido.agregar(item.nombre)} style={botonRedondo}>
+        +
+      </button>
+    </div>
+  )
+}
+
+const botonRedondo: React.CSSProperties = {
+  width: 40,
+  height: 40,
+  minWidth: 40,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  border: '1px solid var(--wine)',
+  borderRadius: '50%',
+  color: 'var(--wine)',
+  fontSize: 20,
+  lineHeight: 1,
+  cursor: 'pointer',
+  fontFamily: 'var(--sans)',
 }
 
 const srOnly: React.CSSProperties = {

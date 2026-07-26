@@ -70,5 +70,55 @@ export const Ajustes: GlobalConfig = {
       type: 'text',
       admin: { description: 'Sin la arroba. Ej: soulcafe.cr' },
     },
+    {
+      name: 'pedidosActivos',
+      label: 'Aceptar pedidos en línea',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description:
+          'Apagar esto quita el botón de pedir del menú y rechaza cualquier pedido nuevo. Útil en hora pico, con poco personal o cuando se acabó el horno.',
+      },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'pedidosDesde',
+          label: 'Se aceptan pedidos desde',
+          type: 'text',
+          defaultValue: '06:00',
+          admin: { width: '33%', description: 'Hora de Costa Rica, formato 24h (06:00).' },
+        },
+        {
+          name: 'pedidosHasta',
+          label: 'Hasta',
+          type: 'text',
+          defaultValue: '17:00',
+          admin: { width: '33%', description: 'Fuera de esta ventana no se puede pedir.' },
+        },
+        {
+          name: 'pedidosAnticipacionMin',
+          label: 'Anticipación mínima (minutos)',
+          type: 'number',
+          defaultValue: 15,
+          min: 0,
+          admin: { width: '34%', description: 'Cuánto tiempo necesitan en barra antes del retiro.' },
+        },
+      ],
+    },
+    {
+      name: 'tarifaIvaDefecto',
+      label: 'Tarifa de IVA general (%)',
+      type: 'number',
+      required: true,
+      defaultValue: 13,
+      min: 0,
+      max: 100,
+      admin: {
+        description:
+          'Los precios de los productos se guardan SIN IVA. Esta tarifa es la que se les suma para mostrar el precio final en el menú. Un producto puede llevar otra tarifa si su código CABYS lo indica.',
+      },
+    },
   ],
 }

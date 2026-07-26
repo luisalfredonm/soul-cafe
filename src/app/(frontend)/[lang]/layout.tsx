@@ -3,6 +3,7 @@ import type { Lang } from '@/i18n/dictionaries'
 import { LANGS } from '@/i18n/dictionaries'
 import { Nav } from '@/components/Nav'
 import { Footer } from '@/components/Footer'
+import { CarritoProvider } from '@/components/Carrito'
 
 // Genera las dos variantes de idioma en build.
 // Nota: con inglés en la raíz, este segmento [lang] captura "es";
@@ -32,9 +33,12 @@ export default async function LangLayout({
   return (
     <html lang={l} suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <Nav lang={l} />
-        <main>{children}</main>
-        <Footer lang={l} />
+        {/* El carrito envuelve todo para sobrevivir al pasar de /menu a /checkout */}
+        <CarritoProvider>
+          <Nav lang={l} />
+          <main>{children}</main>
+          <Footer lang={l} />
+        </CarritoProvider>
       </body>
     </html>
   )
