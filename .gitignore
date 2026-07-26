@@ -1,0 +1,17 @@
+node_modules
+.next
+build
+dist
+.env
+.env*.local
+*.log
+.DS_Store
+src/payload-types.ts
+.vercel
+
+# Caché de compilación de TypeScript
+tsconfig.tsbuildinfo
+
+# Imágenes subidas desde /admin: son datos, no código.
+# Sus metadatos viven en la base, y en producción esto va a almacenamiento en la nube.
+media/

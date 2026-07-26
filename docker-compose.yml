@@ -1,0 +1,20 @@
+# Levanta un Postgres local para desarrollo con un solo comando:
+#   docker compose up -d
+# Apagarlo:
+#   docker compose down
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: soulcafe
+    ports:
+      # 5433 en el host: el 5432 suele estar tomado por un Postgres instalado localmente.
+      - '5433:5432'
+    volumes:
+      - soulcafe_pgdata:/var/lib/postgresql/data
+
+volumes:
+  soulcafe_pgdata:
