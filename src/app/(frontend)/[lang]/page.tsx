@@ -5,7 +5,8 @@ import { LANGS, getDict } from '@/i18n/dictionaries'
 import { Hero } from '@/components/Hero'
 import { Faq } from '@/components/Faq'
 import { Reveal } from '@/components/Reveal'
-import { getAjustes } from '@/lib/payload'
+import { Destacados } from '@/components/Destacados'
+import { getAjustes, getDestacados } from '@/lib/payload'
 
 export const revalidate = 3600 // regenera la página cada hora
 
@@ -31,7 +32,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const l = (LANGS.includes(lang as Lang) ? lang : 'en') as Lang
   const es = l === 'es'
   const t = getDict(l)
-  const a = await getAjustes(l)
+  const [a, destacados] = await Promise.all([getAjustes(l), getDestacados(l)])
   const p = (path: string) => (es ? `/es${path}` : path) || '/'
 
   // Datos estructurados para Google. Lo editable sale del panel;
@@ -137,6 +138,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               </Link>
             </p>
           </div>
+        </div>
+
+        {/* Las fotos cierran la sección a todo el ancho, fuera de la rejilla:
+            el texto promete el café y las fotos lo cumplen ahí mismo. */}
+        <div className="wrap">
+          <Destacados lang={l} titulo={destacados.titulo} fotos={destacados.fotos} />
         </div>
       </section>
 

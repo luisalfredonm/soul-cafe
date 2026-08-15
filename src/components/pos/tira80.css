@@ -1,0 +1,24 @@
+/* Papel de 80 mm: el tiquete del cliente y el cierre de caja.
+ *
+ * Esta hoja la cargan SOLO las páginas que imprimen en tira (`/pos/tiquete/…` y
+ * `/pos/cierre/…`). Vive aparte de `pos.css` porque `@page` manda sobre el
+ * documento entero y no se puede acotar a una clase: si esta regla estuviera en
+ * la hoja global, cualquier otra pantalla que se mandara a imprimir saldría
+ * también en tira angosta.
+ *
+ * Ambas páginas se abren con `window.open` en una ventana propia, así que nunca
+ * comparten documento con el resto del POS. */
+
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  /* En pantalla es un papelito centrado; en el papel ocupa el ancho entero. */
+  .tiquete {
+    width: auto;
+    margin: 0;
+    padding: 2mm 3mm;
+  }
+}

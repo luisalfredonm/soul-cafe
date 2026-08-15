@@ -39,6 +39,9 @@ export const dict = {
       countSome: (n: number, t: number) => `${n} of ${t} items`,
       soldOut: 'Sold out',
     },
+    destacados: {
+      titulo: 'What we pour most',
+    },
     pedido: {
       empezar: 'Order for pickup',
       salir: 'Just browsing',
@@ -118,6 +121,9 @@ export const dict = {
       countAll: (n: number) => `${n} productos`,
       countSome: (n: number, t: number) => `${n} de ${t} productos`,
       soldOut: 'Agotado',
+    },
+    destacados: {
+      titulo: 'Lo que más servimos',
     },
     pedido: {
       empezar: 'Pedir para retirar',

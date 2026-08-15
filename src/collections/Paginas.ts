@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { publico, soloAdmin } from '@/lib/roles'
 
 export const Paginas: CollectionConfig = {
   slug: 'paginas',
@@ -16,10 +17,10 @@ export const Paginas: CollectionConfig = {
   },
 
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req.user),
-    update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
+    read: publico,
+    create: soloAdmin,
+    update: soloAdmin,
+    delete: soloAdmin,
   },
 
   fields: [

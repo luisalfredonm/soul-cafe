@@ -1,0 +1,206 @@
+/* Los reportes, en pantalla y en papel de carta.
+ *
+ * La cargan solo las pantallas de reporte. El `@page` de acá y el de
+ * `tira80.css` nunca conviven en el mismo documento: uno es para la térmica y el
+ * otro para la impresora normal.
+ */
+
+.rep-cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.rep-acciones {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Los presets de rango. Botones de verdad (son enlaces) para que se puedan abrir
+   en otra pestaña y para que el rango quede en la URL: así un reporte se puede
+   guardar en favoritos o mandar por WhatsApp y llega igual al otro lado. */
+.rep-presets {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.rep-presets a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.95rem;
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  background: var(--pos-panel);
+  color: var(--pos-suave);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.rep-presets a:hover {
+  background: var(--pos-panel-2);
+  color: var(--pos-texto);
+}
+
+.rep-presets a[aria-current='page'] {
+  background: var(--pos-vino);
+  border-color: var(--pos-vino);
+  color: #fff;
+}
+
+.rep-rango {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.rep-rango .pos-campo {
+  margin-bottom: 0;
+  flex: 1 1 150px;
+}
+
+/* Las tarjetas de arriba: lo que se mira de un vistazo antes de leer nada. */
+.rep-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.rep-tarjeta {
+  background: var(--pos-panel);
+  border: 1px solid var(--pos-borde);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+}
+
+.rep-tarjeta .rot {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pos-suave);
+  margin-bottom: 0.3rem;
+}
+
+.rep-tarjeta .val {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.rep-tarjeta .pie {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--pos-suave);
+  margin-top: 0.25rem;
+}
+
+/* Barra proporcional dentro de una celda de tabla. Es un reporte de café, no un
+   tablero de control: una barra dibujada con un div dice lo mismo que una
+   librería de gráficos de 300 kB que habría que cargar en una tablet lenta. */
+.rep-barra {
+  position: relative;
+  display: block;
+  height: 22px;
+  background: var(--pos-panel-2);
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.rep-barra i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--pos-vino);
+  border-radius: 4px;
+}
+
+.rep-vacio {
+  color: var(--pos-suave);
+  font-style: italic;
+  padding: 0.75rem 0;
+}
+
+/* Las tablas largas (productos) no deben empujar el ancho de la página. */
+.rep-scroll {
+  overflow-x: auto;
+}
+
+.rep-hoja {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.rep-hoja h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.35rem;
+}
+
+@media print {
+  @page {
+    size: letter;
+    margin: 14mm;
+  }
+
+  /* En papel, el tema oscuro no sirve: gasta tinta y se lee peor. Se imprime en
+     blanco y negro sin depender de que el navegador imprima fondos, que por
+     omisión no lo hace. */
+  body.pos-body {
+    background: #fff;
+    color: #000;
+  }
+
+  .rep-hoja {
+    max-width: none;
+    padding: 0;
+  }
+
+  .rep-tarjeta,
+  .pos-card {
+    border: 1px solid #999;
+    background: transparent;
+    break-inside: avoid;
+  }
+
+  .rep-tarjeta .rot,
+  .rep-tarjeta .pie,
+  .pos-tabla th {
+    color: #444;
+  }
+
+  .pos-tabla th,
+  .pos-tabla td {
+    border-bottom: 1px solid #ccc;
+  }
+
+  .rep-barra {
+    background: #eee;
+    /* Sin esto Chrome no imprime el relleno de la barra y quedan todas vacías. */
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .rep-barra i {
+    background: #666;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Una tabla partida a la mitad entre dos hojas es ilegible. */
+  .pos-card {
+    break-inside: avoid;
+  }
+}

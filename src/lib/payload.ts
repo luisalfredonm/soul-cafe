@@ -68,6 +68,60 @@ export async function getAjustes(lang: Lang) {
   return payload.findGlobal({ slug: 'ajustes', locale: lang })
 }
 
+export type FotoDestacada = {
+  url: string
+  alt: string
+  ancho: number
+  alto: number
+  titulo: string
+  nota: string
+  /** Precio con IVA, listo para mostrar. 0 si la foto no va con un producto. */
+  precio: number
+}
+
+// Fotos de bebidas de la página principal. El nombre y el precio salen del
+// producto relacionado, así no pueden contradecir al menú.
+export async function getDestacados(lang: Lang) {
+  const payload = await getPayloadClient()
+  const [destacados, ajustes] = await Promise.all([
+    payload.findGlobal({ slug: 'destacados', locale: lang, depth: 2 }),
+    payload.findGlobal({ slug: 'ajustes' }),
+  ])
+
+  if (!destacados?.activo) return { titulo: '', fotos: [] as FotoDestacada[] }
+
+  const tarifaGeneral = Number(ajustes?.tarifaIvaDefecto ?? 13)
+
+  const fotos = (destacados.items || []).flatMap((it): FotoDestacada[] => {
+    const img = it?.imagen
+    // Sin imagen subida no hay nada que mostrar.
+    if (!img || typeof img !== 'object') return []
+
+    // Se prefiere el recorte vertical; si todavía no existe, la original.
+    const retrato = img.sizes?.retrato
+    const url = retrato?.url || img.url
+    if (!url) return []
+
+    const prod = typeof it.producto === 'object' && it.producto !== null ? it.producto : null
+    const tarifa = typeof prod?.tarifaIva === 'number' ? prod.tarifaIva : tarifaGeneral
+
+    return [
+      {
+        url,
+        // El alt de la imagen manda; si está vacío, al menos el nombre del producto.
+        alt: img.alt || prod?.nombre || '',
+        ancho: retrato?.width || img.width || 800,
+        alto: retrato?.height || img.height || 1200,
+        titulo: prod?.nombre || it.titulo || '',
+        nota: it.nota || '',
+        precio: prod ? conIva(Number(prod.precio) || 0, tarifa) : 0,
+      },
+    ]
+  })
+
+  return { titulo: destacados.titulo || '', fotos }
+}
+
 export async function getPagina(slug: string, lang: Lang) {
   const payload = await getPayloadClient()
   const res = await payload.find({

@@ -1,0 +1,884 @@
+/* Estilos de la caja.
+ *
+ * Nada de fuentes de Google acá: el POS tiene que pintar instantáneo aunque el
+ * internet del local esté lento, y una fuente que tarda deja al cajero mirando
+ * botones en blanco. Fuentes del sistema.
+ *
+ * Todo lo que se toca mide 48 px o más. En una pantalla táctil, con la mano
+ * ocupada y la fila esperando, no hay tiempo de apuntar.
+ */
+
+:root {
+  --pos-fondo: #16100F;
+  --pos-panel: #211917;
+  --pos-panel-2: #2C2220;
+  --pos-borde: rgba(255, 255, 255, 0.11);
+  --pos-texto: #F6EFEA;
+  --pos-suave: rgba(246, 239, 234, 0.58);
+  --pos-vino: #C4152A;
+  --pos-vino-claro: #E63E52;
+  --pos-ok: #2E9E5B;
+  --pos-alerta: #E0A31C;
+  --pos-radio: 10px;
+  --pos-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body.pos-body {
+  background: var(--pos-fondo);
+  color: var(--pos-texto);
+  font-family: var(--pos-sans);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  /* El cajero no hace scroll con gestos: el layout no rebota. */
+  overscroll-behavior: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--pos-vino-claro);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- Estructura */
+
+/* La app ocupa la pantalla exacta y el scroll pasa DENTRO de `.pos-main`.
+ *
+ * Así la barra de arriba se queda quieta sin necesidad de `sticky`, y lo de
+ * abajo hereda un alto definido. Antes el alto de la pantalla de venta se
+ * calculaba restando los píxeles de la barra a mano, y cualquier cosa que se
+ * agregara arriba —la alarma, por ejemplo— empujaba el botón de cobrar fuera
+ * de la vista. */
+.pos-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* La barra y la alarma son un bloque fijo arriba; no se van con el scroll
+   porque quien se desplaza es `.pos-main`, no la página. */
+.pos-superior {
+  flex: 0 0 auto;
+  z-index: 40;
+}
+
+.pos-barra {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: var(--pos-panel);
+  border-bottom: 1px solid var(--pos-borde);
+}
+
+.pos-marca {
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--pos-suave);
+}
+
+.pos-nav {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: 0.5rem;
+}
+
+.pos-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: var(--pos-radio);
+  color: var(--pos-suave);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.94rem;
+  white-space: nowrap;
+}
+
+.pos-nav a:hover {
+  background: var(--pos-panel-2);
+  color: var(--pos-texto);
+}
+
+.pos-nav a[aria-current='page'] {
+  background: var(--pos-vino);
+  color: #fff;
+}
+
+.pos-usuario {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+  color: var(--pos-suave);
+}
+
+.pos-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ---------------------------------------------------------------- Alarma
+ *
+ * Va dentro de `.pos-superior`, así que se queda arriba con la barra. Un aviso
+ * que se va con el scroll no sirve de aviso.
+ */
+
+.pos-alarma {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem;
+  background: var(--pos-vino);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.pos-alarma .campana {
+  font-size: 1.2rem;
+  /* Se mueve para que se note de reojo desde el otro lado de la barra. */
+  animation: pos-campanea 1.4s ease-in-out infinite;
+}
+
+.pos-alarma a {
+  margin-left: auto;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  background: #fff;
+  color: var(--pos-vino);
+  border-radius: var(--pos-radio);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+@keyframes pos-campanea {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0deg);
+  }
+  70% {
+    transform: rotate(14deg);
+  }
+  80% {
+    transform: rotate(-12deg);
+  }
+  90% {
+    transform: rotate(6deg);
+  }
+}
+
+/* Quien prefiera no ver cosas moviéndose, no las ve. El color y el texto
+   siguen estando. */
+@media (prefers-reduced-motion: reduce) {
+  .pos-alarma .campana {
+    animation: none;
+  }
+}
+
+.pos-audio {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: rgba(224, 163, 28, 0.16);
+  border: 0;
+  border-bottom: 1px solid var(--pos-alerta);
+  color: var(--pos-alerta);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Catálogo a la izquierda, ticket a la derecha. En tablet vertical se apilan. */
+.pos-venta {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1px;
+  background: var(--pos-borde);
+  min-height: 0;
+  /* Llena exactamente lo que quede libre, sea cual sea el alto de la barra. */
+  height: 100%;
+}
+
+@media (max-width: 900px) {
+  .pos-venta {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.pos-catalogo,
+.pos-ticket {
+  background: var(--pos-fondo);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-ticket {
+  background: var(--pos-panel);
+}
+
+/* ---------------------------------------------------------------- Catálogo */
+
+.pos-categorias {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--pos-borde);
+  scrollbar-width: thin;
+}
+
+.pos-categorias button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 1.15rem;
+  background: var(--pos-panel);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pos-categorias button[aria-pressed='true'] {
+  background: var(--pos-vino);
+  border-color: var(--pos-vino);
+  color: #fff;
+}
+
+.pos-buscador {
+  padding: 0 1rem 0.75rem;
+  border-bottom: 1px solid var(--pos-borde);
+}
+
+.pos-buscador input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 1rem;
+  background: var(--pos-panel);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+}
+
+.pos-productos {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+  align-content: start;
+}
+
+.pos-producto {
+  min-height: 92px;
+  padding: 0.7rem;
+  background: var(--pos-panel);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.pos-producto:active {
+  background: var(--pos-vino);
+  border-color: var(--pos-vino);
+}
+
+.pos-producto .nom {
+  font-weight: 500;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.pos-producto .precio {
+  font-variant-numeric: tabular-nums;
+  color: var(--pos-suave);
+  font-size: 0.92rem;
+}
+
+.pos-producto .marca {
+  position: absolute;
+}
+
+/* ---------------------------------------------------------------- Ticket */
+
+.pos-ticket-cab {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--pos-borde);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pos-ticket-cab h2 {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pos-suave);
+  font-weight: 600;
+}
+
+.pos-lineas {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  min-height: 120px;
+}
+
+.pos-linea {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem 0.5rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--pos-borde);
+}
+
+.pos-linea .nom {
+  font-size: 0.94rem;
+}
+
+.pos-linea .imp {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pos-cant {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pos-redondo {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pos-panel-2);
+  border: 1px solid var(--pos-borde);
+  border-radius: 50%;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pos-cant .n {
+  min-width: 28px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.pos-vacio {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--pos-suave);
+}
+
+.pos-totales {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--pos-borde);
+  background: var(--pos-panel-2);
+}
+
+.pos-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.18rem 0;
+  font-size: 0.92rem;
+  color: var(--pos-suave);
+}
+
+.pos-fila.total {
+  color: var(--pos-texto);
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding-top: 0.6rem;
+  margin-top: 0.4rem;
+  border-top: 1px solid var(--pos-borde);
+}
+
+.pos-fila .imp {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- Botones */
+
+.pos-btn {
+  min-height: 52px;
+  padding: 0 1.25rem;
+  background: var(--pos-panel-2);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pos-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.pos-btn-cobrar {
+  width: 100%;
+  min-height: 64px;
+  font-size: 1.12rem;
+  background: var(--pos-ok);
+  border-color: transparent;
+  color: #fff;
+  margin-top: 0.75rem;
+}
+
+.pos-btn-vino {
+  background: var(--pos-vino);
+  border-color: transparent;
+  color: #fff;
+}
+
+.pos-btn-fino {
+  min-height: 44px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------- Modal */
+
+.pos-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.pos-modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  background: var(--pos-panel);
+  border: 1px solid var(--pos-borde);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.pos-modal h2 {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+}
+
+.pos-medios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pos-medios button {
+  min-height: 56px;
+  background: var(--pos-panel-2);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pos-medios button[aria-pressed='true'] {
+  background: var(--pos-vino);
+  border-color: var(--pos-vino);
+  color: #fff;
+}
+
+.pos-teclado {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.pos-teclado button {
+  min-height: 58px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  background: var(--pos-panel-2);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  cursor: pointer;
+}
+
+.pos-monto {
+  width: 100%;
+  min-height: 62px;
+  padding: 0 1rem;
+  margin-bottom: 0.6rem;
+  background: var(--pos-fondo);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-rapidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.pos-rapidos button {
+  flex: 1 1 auto;
+  min-height: 46px;
+  padding: 0 0.75rem;
+  background: transparent;
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.pos-campo {
+  display: block;
+  margin-bottom: 0.85rem;
+}
+
+.pos-campo span {
+  display: block;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pos-suave);
+  margin-bottom: 0.35rem;
+}
+
+.pos-campo input,
+.pos-campo textarea,
+.pos-campo select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0.6rem 0.85rem;
+  background: var(--pos-fondo);
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+}
+
+.pos-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--pos-vino-claro);
+  border-radius: var(--pos-radio);
+  color: #ffd7dc;
+  background: rgba(196, 21, 42, 0.16);
+  font-size: 0.92rem;
+}
+
+.pos-aviso {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--pos-borde);
+  border-radius: var(--pos-radio);
+  color: var(--pos-suave);
+  font-size: 0.92rem;
+}
+
+/* ---------------------------------------------------------------- Páginas simples */
+
+.pos-hoja {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.pos-hoja h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.35rem;
+}
+
+.pos-card {
+  background: var(--pos-panel);
+  border: 1px solid var(--pos-borde);
+  border-radius: 14px;
+  padding: 1.15rem;
+  margin-bottom: 1rem;
+}
+
+.pos-seccion {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pos-suave);
+  font-weight: 600;
+}
+
+.pos-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-tabla th,
+.pos-tabla td {
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid var(--pos-borde);
+  text-align: left;
+}
+
+.pos-tabla td.num,
+.pos-tabla th.num {
+  text-align: right;
+}
+
+.pos-chip {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--pos-borde);
+  color: var(--pos-suave);
+}
+
+.pos-chip.nuevo {
+  border-color: var(--pos-alerta);
+  color: var(--pos-alerta);
+}
+
+.pos-chip.listo {
+  border-color: var(--pos-ok);
+  color: var(--pos-ok);
+}
+
+.pos-chip.pendiente {
+  border-color: var(--pos-vino-claro);
+  color: var(--pos-vino-claro);
+}
+
+/* ---------------------------------------------------------------- Mesas */
+
+.pos-mesas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 0.6rem;
+}
+
+.pos-mesa {
+  min-height: 104px;
+  padding: 0.75rem;
+  background: var(--pos-panel);
+  border: 1px solid var(--pos-borde);
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* Una mesa ocupada tiene que gritar desde el otro lado de la barra. */
+.pos-mesa.ocupada {
+  background: rgba(196, 21, 42, 0.18);
+  border-color: var(--pos-vino);
+}
+
+.pos-mesa .num {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pos-mesa .imp {
+  margin-top: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-mesa .desde {
+  font-size: 0.78rem;
+  color: var(--pos-suave);
+}
+
+.pos-mesa:not(.ocupada) .desde {
+  margin-top: auto;
+}
+
+/* Cinta que recuerda a qué mesa se está cargando la venta. */
+.pos-cinta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  background: var(--pos-vino);
+  color: #fff;
+  font-weight: 600;
+}
+
+.pos-cinta a {
+  margin-left: auto;
+  color: #fff;
+  text-decoration: underline;
+  font-weight: 500;
+  font-size: 0.88rem;
+}
+
+.pos-yaenla {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--pos-borde);
+  background: var(--pos-panel-2);
+}
+
+.pos-yaenla h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pos-suave);
+  font-weight: 600;
+}
+
+.pos-yaenla ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.88rem;
+  color: var(--pos-suave);
+}
+
+.pos-yaenla li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.1rem 0;
+}
+
+/* ---------------------------------------------------------------- Tiquete 80 mm
+ *
+ * En pantalla se ve como un papelito centrado; al imprimir ocupa la hoja entera
+ * y todo lo demás desaparece.
+ */
+
+.tiquete {
+  width: 72mm;
+  margin: 1.5rem auto;
+  padding: 4mm;
+  background: #fff;
+  color: #000;
+  font-family: ui-monospace, 'Cascadia Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.tiquete h1 {
+  font-size: 15px;
+  text-align: center;
+  margin: 0 0 2px;
+}
+
+.tiquete .centro {
+  text-align: center;
+}
+
+.tiquete .sep {
+  border: 0;
+  border-top: 1px dashed #000;
+  margin: 6px 0;
+}
+
+.tiquete table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tiquete td {
+  vertical-align: top;
+  padding: 1px 0;
+}
+
+.tiquete td.num {
+  text-align: right;
+  white-space: nowrap;
+  padding-left: 4px;
+}
+
+.tiquete .grande {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.tiquete .codigo {
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-align: center;
+  margin: 4px 0;
+}
+
+/* Lo que vale para CUALQUIER impresión del POS.
+ *
+ * El tamaño de página NO se define acá. `@page` no se puede limitar a una clase:
+ * la última regla que se cargue manda sobre todo el documento. Con el `size:
+ * 80mm` puesto en esta hoja —que la carga el layout entero— un reporte de página
+ * completa salía en tira de ocho centímetros de ancho y tres metros de largo.
+ *
+ * Cada formato trae el suyo en su propia hoja, que solo cargan las páginas que lo
+ * usan: `tira80.css` para el tiquete y el cierre Z, `reporte.css` para los
+ * reportes en carta. */
+@media print {
+  body.pos-body {
+    background: #fff;
+  }
+
+  .no-imprimir {
+    display: none !important;
+  }
+}

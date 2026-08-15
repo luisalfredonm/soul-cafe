@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:red": "node scripts/dev-red.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

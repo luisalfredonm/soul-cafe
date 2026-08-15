@@ -76,6 +76,7 @@ async function seed() {
         email: 'admin@soulcafe.cr',
         password: 'cambiar-esta-clave',
         nombre: 'Administrador',
+        rol: 'admin',
       },
     })
     console.log('  admin@soulcafe.cr / cambiar-esta-clave  (cambiala al entrar)')

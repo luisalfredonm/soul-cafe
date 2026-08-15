@@ -16,9 +16,11 @@ const PUBLIC_FILE = /\.(.*)$/
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // No tocar Payload, la API, assets ni archivos con extensión
+  // No tocar Payload, la caja, la API, assets ni archivos con extensión.
+  // El POS es interno y solo en español: no entra al esquema bilingüe.
   if (
     pathname.startsWith('/admin') ||
+    pathname.startsWith('/pos') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/es') ||

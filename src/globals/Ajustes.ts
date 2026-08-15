@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { publico, soloAdmin } from '@/lib/roles'
 
 // Un "global" es un único registro editable (no una lista).
 // Aquí viven los datos del negocio que aparecen en varias páginas:
@@ -13,8 +14,8 @@ export const Ajustes: GlobalConfig = {
   },
 
   access: {
-    read: () => true,
-    update: ({ req }) => Boolean(req.user),
+    read: publico,
+    update: soloAdmin,
   },
 
   fields: [
@@ -119,6 +120,56 @@ export const Ajustes: GlobalConfig = {
         description:
           'Los precios de los productos se guardan SIN IVA. Esta tarifa es la que se les suma para mostrar el precio final en el menú. Un producto puede llevar otra tarifa si su código CABYS lo indica.',
       },
+    },
+
+    {
+      name: 'cantidadMesas',
+      label: 'Cantidad de mesas',
+      type: 'number',
+      required: true,
+      defaultValue: 10,
+      min: 0,
+      max: 60,
+      admin: {
+        description:
+          'Cuántas mesas tiene el salón. La caja las numera del 1 en adelante. Poner 0 si no se atienden mesas.',
+      },
+    },
+
+    // ---------------- Tiquete de caja ----------------
+    {
+      type: 'collapsible',
+      label: 'Tiquete de caja',
+      admin: {
+        description: 'Lo que sale impreso en el tiquete que se le entrega al cliente en el local.',
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'negocioNombreLegal',
+              label: 'Nombre o razón social',
+              type: 'text',
+              defaultValue: 'Soul Cafe',
+              admin: { width: '50%', description: 'Va en el encabezado del tiquete.' },
+            },
+            {
+              name: 'cedulaJuridica',
+              label: 'Cédula jurídica o física',
+              type: 'text',
+              admin: { width: '50%', description: 'Ej: 3-101-123456.' },
+            },
+          ],
+        },
+        {
+          name: 'tiquetePie',
+          label: 'Mensaje al pie',
+          type: 'textarea',
+          defaultValue: '¡Gracias por su visita!',
+          admin: { description: 'Dos o tres líneas como mucho: el papel es angosto.' },
+        },
+      ],
     },
   ],
 }

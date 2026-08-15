@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { publico, soloAdmin } from '@/lib/roles'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -13,10 +14,10 @@ export const Media: CollectionConfig = {
   },
 
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req.user),
-    update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
+    read: publico,
+    create: soloAdmin,
+    update: soloAdmin,
+    delete: soloAdmin,
   },
 
   upload: {
@@ -25,6 +26,9 @@ export const Media: CollectionConfig = {
       { name: 'thumbnail', width: 400, height: 300, position: 'centre' },
       { name: 'card', width: 768, height: 576, position: 'centre' },
       { name: 'hero', width: 1600, height: undefined, position: 'centre' },
+      // Vertical, para las fotos de bebidas. Los tamaños de arriba son 4:3 y
+      // recortan al centro: a una foto de taza en vertical le cortarían la taza.
+      { name: 'retrato', width: 800, height: 1200, position: 'centre' },
     ],
     focalPoint: true,
     mimeTypes: ['image/*'],

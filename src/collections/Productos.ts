@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { publico, soloAdmin } from '@/lib/roles'
 
 export const Productos: CollectionConfig = {
   slug: 'productos',
@@ -15,13 +16,13 @@ export const Productos: CollectionConfig = {
     description: 'Bebidas y repostería que aparecen en el menú del sitio.',
   },
 
-  // Cualquiera puede leer el menú (es un sitio público);
-  // solo usuarios del panel pueden crear, editar o borrar.
+  // Cualquiera puede leer el menú (es un sitio público). Escribir es cosa del
+  // admin: un cajero no cambia precios en medio de un turno.
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req.user),
-    update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
+    read: publico,
+    create: soloAdmin,
+    update: soloAdmin,
+    delete: soloAdmin,
   },
 
   fields: [
@@ -58,6 +59,16 @@ export const Productos: CollectionConfig = {
           admin: { width: '50%' },
         },
       ],
+    },
+    {
+      name: 'costo',
+      label: 'Costo (colones, sin IVA)',
+      type: 'number',
+      min: 0,
+      admin: {
+        description:
+          'Lo que le cuesta al negocio: grano, leche, vaso, tapa. Sirve para el reporte de margen y NO se le muestra nunca al cliente. Se puede dejar vacío, pero entonces ese producto queda fuera del margen: el reporte dice cuántos tienen costo puesto para que un margen a medias no se lea como si fuera el de todo.',
+      },
     },
     {
       name: 'etiquetas',
