@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url'
 import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 
 import { Productos } from './collections/Productos'
 import { Categorias } from './collections/Categorias'
@@ -96,4 +97,16 @@ export default buildConfig({
       fileSize: 5_000_000, // 5 MB por archivo
     },
   },
+
+  // Sin token (desarrollo local) las imágenes se guardan en /media como siempre.
+  // Con BLOB_READ_WRITE_TOKEN (Vercel) se suben a Vercel Blob, porque el disco
+  // de las funciones serverless no persiste entre despliegues.
+  plugins: process.env.BLOB_READ_WRITE_TOKEN
+    ? [
+        vercelBlobStorage({
+          collections: { media: true },
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        }),
+      ]
+    : [],
 })

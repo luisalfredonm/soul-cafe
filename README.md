@@ -335,14 +335,25 @@ Si algún día querés invertirlo (español en la raíz), se cambia `DEFAULT_LAN
 
 ## Publicar en producción
 
-**Opción recomendada: Vercel + Neon.**
+**Opción recomendada (gratis para empezar): Vercel + Neon + Vercel Blob.**
 
 1. Creá una base en [neon.tech](https://neon.tech) y copiá su cadena de conexión.
-2. Subí el repo a GitHub e importalo en [vercel.com](https://vercel.com).
-3. En Vercel, configurá las variables de entorno: `DATABASE_URI`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_SERVER_URL` (tu dominio final).
-4. Desplegá. La primera vez, corré el seed una sola vez contra la base de producción, o cargá el contenido a mano desde `/admin`.
+2. Subí el repo a GitHub (ya está) e importalo en [vercel.com](https://vercel.com).
+3. En el proyecto de Vercel, pestaña **Storage → Create → Blob**, y conectala al proyecto. Esto agrega sola la variable `BLOB_READ_WRITE_TOKEN`: sin ella el proyecto guardaría las fotos en el disco de la función, que se borra en cada despliegue.
+4. Completá el resto de las variables de entorno: `DATABASE_URI` (la de Neon), `PAYLOAD_SECRET`, `NEXT_PUBLIC_SERVER_URL` (tu dominio final).
+5. Desplegá. El build corre `payload migrate` solo antes de compilar — crea las tablas la primera vez y no repite las que ya corrieron.
+6. Entrá a `/admin` y creá el primer usuario administrador. Después, cargá el menú a mano o corré el seed una sola vez apuntando a la base de producción:
+   ```bash
+   DATABASE_URI=<cadena-de-neon> npm run seed
+   ```
 
-**Alternativa más barata:** un VPS de ~$6 con [Coolify](https://coolify.io), que incluye Postgres. Mismo proyecto, mismas variables.
+Cada vez que se agregue un campo nuevo a una colección, generá su migración antes de subir el cambio:
+
+```bash
+npx payload migrate:create
+```
+
+**Alternativa más barata:** un VPS de ~$6 con [Coolify](https://coolify.io), que incluye Postgres y disco persistente (ahí ni hace falta Vercel Blob: las fotos se pueden quedar en `/media`). Mismo proyecto, mismas variables, sin la de Blob.
 
 ---
 
