@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:red": "node scripts/dev-red.mjs",
-    "build": "payload migrate && next build",
+    "build": "payload generate:types && payload migrate && next build",
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx --env-file=.env src/seed.ts",
