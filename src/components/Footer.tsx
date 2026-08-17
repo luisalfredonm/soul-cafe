@@ -18,6 +18,17 @@ export function Footer({ lang }: { lang: Lang }) {
           {t.foot.tagline}
         </p>
         <p style={{ fontSize: '.82rem', letterSpacing: '.06em' }}>{t.foot.prototype}</p>
+        <p style={{ fontSize: '.75rem', marginTop: '.75rem', opacity: 0.7 }}>
+          {t.foot.credito}{' '}
+          <a
+            href="https://321solutions.net/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'inherit', textDecoration: 'underline' }}
+          >
+            321 Solutions
+          </a>
+        </p>
       </div>
     </footer>
   )

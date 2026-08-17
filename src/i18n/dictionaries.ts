@@ -89,6 +89,7 @@ export const dict = {
     foot: {
       tagline: 'Coffee that feeds the soul',
       prototype: 'Soul Cafe · Huacas, Guanacaste',
+      credito: 'Built by',
     },
   },
   es: {
@@ -172,6 +173,7 @@ export const dict = {
     foot: {
       tagline: 'Café que alimenta el alma',
       prototype: 'Soul Cafe · Huacas, Guanacaste',
+      credito: 'Sitio creado por',
     },
   },
 } as const
