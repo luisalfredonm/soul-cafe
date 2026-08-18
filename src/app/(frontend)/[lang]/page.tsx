@@ -8,7 +8,7 @@ import { Reveal } from '@/components/Reveal'
 import { Destacados } from '@/components/Destacados'
 import { getAjustes, getDestacados } from '@/lib/payload'
 
-export const revalidate = 3600 // regenera la página cada hora
+export const revalidate = 300 // regenera la página cada 5 minutos, igual que el menú
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params
